@@ -13,8 +13,14 @@ df['day-1'] = pd.to_numeric(df['day-1'], errors='coerce').astype('Int64')
 
 df = df.dropna(subset=['year-1', 'month-1', 'day-1'])
 
-# Construct datetime
-df['date-1'] = pd.to_datetime(df[['year-1', 'month-1', 'day-1']])
+# Construct datetime from renamed columns
+df['date-1'] = pd.to_datetime(
+    df[['year-1', 'month-1', 'day-1']].rename(
+        columns={'year-1': 'year', 'month-1': 'month', 'day-1': 'day'}
+    ),
+    errors='coerce'
+)
+
 
 df['month'] = df['date-1'].dt.strftime('%B')
 df['month'] = pd.Categorical(df['month'], categories=[
@@ -34,18 +40,19 @@ df_theme = df[
     df['title-1'].str.contains('|'.join(keywords), case=False, na=False) |
     df['title-2'].str.contains('|'.join(keywords), case=False, na=False)
 ]
-df_theme.to_csv("outputs/tfidf_theme_filtered.csv", index=False)
+df_theme.to_csv("C:/Users/HP/Downloads/FASDH25-portfolio3/outputs/tfidf_theme_filtered.csv", index=False)
+
 
 edges = df[['filename-1', 'filename-2', 'similarity']].rename(
     columns={'filename-1': 'Source', 'filename-2': 'Target', 'similarity': 'Weight'}
 )
-edges.to_csv("outputs/tfidf_edges.csv", index=False)
+edges.to_csv("C:/Users/HP/Downloads/FASDH25-portfolio3/outputs/tfidf_edges.csv", index=False)
 
 nodes = pd.concat([
     df[['filename-1', 'title-1']].rename(columns={'filename-1': 'Id', 'title-1': 'Label'}),
     df[['filename-2', 'title-2']].rename(columns={'filename-2': 'Id', 'title-2': 'Label'})
 ]).drop_duplicates()
-nodes.to_csv("outputs/tfidf_nodes.csv", index=False)
+nodes.to_csv("C:/Users/HP/Downloads/FASDH25-portfolio3/outputs/tfidf_nodes.csv", index=False)
 
 fig = px.scatter(
     df,
@@ -63,5 +70,5 @@ fig.update_layout(
     template='plotly_white'
 )
 
-fig.write_image("outputs/tfidf_clusters.png")
-fig.write_html("outputs/tfidf_clusters.html")
+fig.write_image("C:/Users/HP/Downloads/FASDH25-portfolio3/outputs/tfidf_clusters.png")
+fig.write_html("C:/Users/HP/Downloads/FASDH25-portfolio3/outputs/tfidf_clusters.html")
