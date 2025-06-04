@@ -4,7 +4,10 @@ import plotly.express as px
 import plotly.io as pio
 import os
 
-# Print the current working directory for debugging
+# Define war start date
+war_start_date = pd.Timestamp("2023-10-07")
+
+# Print current working directory for debugging
 print("Current working directory:", os.getcwd())
 
 # Define data path
@@ -20,7 +23,7 @@ try:
 except FileNotFoundError:
     print(f"Error accessing directory {data_dir}. Please check the path.")
 
-df = None  # Initialize df
+df = None
 
 # Load the dataset
 try:
@@ -33,7 +36,6 @@ except FileNotFoundError:
 if df is not None:
     print("Available columns:", df.columns.tolist())
 
-    # Ensure required date columns exist
     required_date_cols = ['year-1', 'month-1', 'day-1']
     if all(col in df.columns for col in required_date_cols):
         df = df.dropna(subset=required_date_cols)
@@ -44,23 +46,23 @@ if df is not None:
 
         df = df.dropna(subset=required_date_cols)
 
-        # Rename for datetime construction
         date_cols_renamed = df[required_date_cols].rename(columns={
             'year-1': 'year', 'month-1': 'month', 'day-1': 'day'
         })
         df['date-1'] = pd.to_datetime(date_cols_renamed, errors='coerce')
         df = df.dropna(subset=['date-1'])
 
-        df = df.copy()  # Avoid SettingWithCopyWarning
         df['month_start'] = df['date-1'].dt.to_period('M').dt.to_timestamp()
-
         df['month'] = df['date-1'].dt.strftime('%B')
         df['month'] = pd.Categorical(df['month'], categories=[
             'January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'
         ], ordered=True)
 
-        # Filter by similarity threshold
+        # Define war_time column
+        df['war_time'] = df['date-1'] >= war_start_date
+
+        # Filter top 5% similarity
         if 'similarity' in df.columns:
             threshold = df['similarity'].quantile(0.95)
             df = df[df['similarity'] >= threshold]
@@ -70,10 +72,8 @@ if df is not None:
                 print(df[['filename-1', 'filename-2', 'similarity']])
             else:
                 print("Required columns for similarity pairs not found.")
-        else:
-            print("Column 'similarity' not found. Skipping similarity filtering.")
 
-        # Filter by keywords in titles
+        # Filter by keywords
         keywords = ['hospital', 'medical', 'surgeon', 'drone', 'missile', 'strike']
         if 'title-1' in df.columns and 'title-2' in df.columns:
             df_theme = df[
@@ -82,59 +82,69 @@ if df is not None:
             ]
             os.makedirs("outputs", exist_ok=True)
             df_theme.to_csv("outputs/tfidf_theme_filtered.csv", index=False)
-            print("Theme-filtered data saved to outputs/tfidf_theme_filtered.csv")
+            print("Theme-filtered data saved.")
         else:
-            print("Columns 'title-1' or 'title-2' not found. Skipping theme filtering.")
+            print("Title columns not found. Skipping theme filtering.")
 
-        # Prepare edges
+        # Save edges and nodes
         if all(col in df.columns for col in ['filename-1', 'filename-2', 'similarity']):
             edges = df[['filename-1', 'filename-2', 'similarity']].rename(
                 columns={'filename-1': 'Source', 'filename-2': 'Target', 'similarity': 'Weight'}
             )
-            os.makedirs("outputs", exist_ok=True)
             edges.to_csv("outputs/tfidf_edges.csv", index=False)
-            print("Edges data saved to outputs/tfidf_edges.csv")
-        else:
-            print("Required columns for edges not found.")
-
-        # Prepare nodes
+            print("Edges data saved.")
         if all(col in df.columns for col in ['filename-1', 'title-1', 'filename-2', 'title-2']):
             nodes = pd.concat([
                 df[['filename-1', 'title-1']].rename(columns={'filename-1': 'Id', 'title-1': 'Label'}),
                 df[['filename-2', 'title-2']].rename(columns={'filename-2': 'Id', 'title-2': 'Label'})
             ]).drop_duplicates()
-            os.makedirs("outputs", exist_ok=True)
             nodes.to_csv("outputs/tfidf_nodes.csv", index=False)
-            print("Nodes data saved to outputs/tfidf_nodes.csv")
-        else:
-            print("Required columns for nodes not found.")
+            print("Nodes data saved.")
 
-        # Plot
+        # Plotting overall
         if all(col in df.columns for col in ['month', 'similarity', 'year-1', 'title-1', 'title-2']):
-            fig = px.scatter(
+            fig_all = px.scatter(
                 df,
                 x='month',
                 y='similarity',
                 color='year-1',
-                title='Top 5% Article Similarity Clusters by Month',
+                title='Top 5% Article Similarity Clusters by Month (All)',
                 hover_data=['title-1', 'title-2']
             )
+            fig_all.write_image("outputs/tfidf_clusters_all.png")
+            fig_all.write_html("outputs/tfidf_clusters_all.html")
+            print("Overall plot saved.")
 
-            fig.update_layout(
-                xaxis_title='Month of Publication',
-                yaxis_title='TF-IDF Cosine Similarity',
-                legend_title='Publication Year',
-                template='plotly_white'
+            # Pre-war plot
+            df_prewar = df[df['war_time'] == False]
+            fig_prewar = px.scatter(
+                df_prewar,
+                x='month',
+                y='similarity',
+                color='year-1',
+                title='Article Similarity (Pre-War)',
+                hover_data=['title-1', 'title-2']
             )
+            fig_prewar.write_image("outputs/tfidf_clusters_prewar.png")
+            fig_prewar.write_html("outputs/tfidf_clusters_prewar.html")
+            print("Pre-war plot saved.")
 
-            os.makedirs("outputs", exist_ok=True)
-            fig.write_image("outputs/tfidf_clusters.png")
-            print("Plot saved as outputs/tfidf_clusters.png")
-            fig.write_html("outputs/tfidf_clusters.html")
-            print("Plot saved as outputs/tfidf_clusters.html")
+            # War-time plot
+            df_wartime = df[df['war_time'] == True]
+            fig_wartime = px.scatter(
+                df_wartime,
+                x='month',
+                y='similarity',
+                color='year-1',
+                title='Article Similarity (During War)',
+                hover_data=['title-1', 'title-2']
+            )
+            fig_wartime.write_image("outputs/tfidf_clusters_wartime.png")
+            fig_wartime.write_html("outputs/tfidf_clusters_wartime.html")
+            print("War-time plot saved.")
         else:
             print("Required columns for plotting not found.")
     else:
-        print("Required date columns not found in dataframe.")
+        print("Required date columns not found.")
 else:
     print("Dataframe not loaded. Skipping processing.")
