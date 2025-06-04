@@ -33,27 +33,33 @@ df = df[~df['topic_3'].str.lower().isin(stop_words)]
 df = df[~df['topic_4'].str.lower().isin(stop_words)]
 # Create a combined topic label
 df['Topic_Label'] = df['topic_1'] + ', ' + df['topic_2'] + ',' + df['topic_3'] + ',' + df['topic_4']
+# Print and check
+print(df)
 
-# Exploration 1
+
 #Which topics dominated coverage in 2023, and how do they compare to 2024?  (Top topics in 2023 vs. 2024)
-
 # ensure noise topics are removed again
 df = df[df['Topic'] != -1]  
 # regenerate topic label
 df['Topic_Label'] = df['topic_1'] + ', ' + df['topic_2']  + ',' + df['topic_3'] + ',' + df['topic_4']
-
-
+# Check
+print(df['Topic_Label'])
 # Count topic occurrences for each year
 # Count topic occurrences for 2023
 df_2023 = df[df['year'] == 2023]['Topic_Label'].value_counts().reset_index(name='count')
 df_2023['year'] = 2023
+# Print and check
+print(df_2023)
 # Count topic occurrences for 2024
 df_2024 = df[df['year'] == 2024]['Topic_Label'].value_counts().reset_index(name='count')
 df_2024['year'] = 2024
+# Print and check
+print(df_2024)
 # Combine and rename columns
 df_combined = pd.concat([df_2023, df_2024])
 df_combined.columns = ['Topic_Label', 'Count', 'Year']
-
+# Print and check
+print(df_combined)
 # Plot: Year on x-axis, Count on y-axis, Topic_Label as color
 fig = px.bar(df_combined, 
              x='Year', 
@@ -65,10 +71,12 @@ fig = px.bar(df_combined,
 # Ensure x-axis is treated as categorical (not continuous) for proper bar grouping
 fig.update_layout(xaxis=dict(type='category'))
 # save chart as html
-fig.write_html("../outputs/topic-modelling/exploration/topic_dominance_2023vs2024.html")  
+fig.write_html("../outputs/topic-modelling/visualization/topic_dominance_2023vs2024.html")  
+# save as csv
+df_combined.to_csv("../outputs/topic-modelling/exploration/topic_dominance_2023vs2024.csv")
 
-# Exploration 2: Top 20 Topics in Entire Dataset
 
+#Top 20 Topics in Entire Dataset
 # Get top 20 topic labels
 top_20 = df['Topic_Label'].value_counts().head(20).reset_index()
 # Print for verification
@@ -86,10 +94,12 @@ fig_20 = px.bar(top_20,
                 template='plotly_white')
 fig_20.update_layout(xaxis_tickangle=-45) # rotate labels
 # Save as interactive HTML
-fig_20.write_html("../outputs/topic-modelling/exploration/top_20_topics_entire_dataset_yearly.html")
+fig_20.write_html("../outputs/topic-modelling/visualization/top_20_topics_entire_dataset_yearly.html")
+# save as csv
+top_20.to_csv("../outputs/topic-modelling/exploration/top_20topics.csv")
 
-# Exploration 3 :Top 10 Topics in Entire Dataset
 
+#Top 10 Topics in Entire Dataset
 # Get top 10 from previously computed top 20
 top_10 = top_20.head(10)
 # Check output
@@ -104,30 +114,38 @@ fig_10 = px.bar(top_10,
 # Rotate x-axis labels
 fig_10.update_layout(xaxis_tickangle=-45)
 # save chart as interactive HTML
-fig_10.write_html("../outputs/topic-modelling/exploration/top_10_topics_entire_dataset_yearly.html")
+fig_10.write_html("../outputs/topic-modelling/visualization/top_10_topics_entire_dataset_yearly.html")
+# save as csv
+top_10.to_csv("../outputs/topic-modelling/exploration/top_10topics.csv")
 
-# Visualization -- Top 5 Topic Trends After War Began (Oct 7, 2023)
+
+# Top 5 Topic Trends After War Began (Oct 7, 2023)
 # Which topics dominated since the start of War?
 
 # Convert to datetime for filtering
 df['date'] = pd.to_datetime(df[['year', 'month', 'day']])
+# Print and check
+print(df['date'])
 # Define start of war
 war_start = pd.Timestamp("2023-10-07")
 # Filter posts after war began
 df_war = df[df['date'] >= war_start]
-
+# Print and check
+print(df_war)
 # Create a new column with Month-Year format # For trend visualization 
 df_war['Month'] = df_war['date'].dt.to_period('M').astype(str)
 
 # Identify top 5 topics since war began
 top_5_labels = df_war['Topic_Label'].value_counts().head(5).index.tolist()
+# Print and check
+print(top_5_labels)
 # Filter dataset to keep only top 5 war-related topics
 df_top5_war = df_war[df_war['Topic_Label'].isin(top_5_labels)]
 # Check filtered war data
 print(df_top5_war )
 # Aggregate counts by month and topic (Group by Month and Topic_Label)
 monthly_counts = df_top5_war.groupby(['Month', 'Topic_Label']).size().reset_index(name='Count')
-
+print(monthly_counts)
 # Create interactive bar chart showing topic trends over time
 fig_trend = px.bar(monthly_counts,
                    x='Month',
@@ -143,3 +161,5 @@ fig_trend.update_layout(barmode='group', xaxis_tickangle=-45)
 fig_trend.write_html("../outputs/topic-modelling/visualization/top_5_topics_war_period_monthly_trend.html")
 # Display
 fig_trend.show()
+# save as csv
+monthly_counts.to_csv("../outputs/topic-modelling/exploration/monthly_counts.csv")
