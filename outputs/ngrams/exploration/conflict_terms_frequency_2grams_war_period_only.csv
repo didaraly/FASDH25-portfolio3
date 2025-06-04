@@ -1,0 +1,20 @@
+year,month,2-gram,count,date
+2023,10,attacked gaza,2,2023-10-01
+2023,10,children killed,8,2023-10-01
+2023,10,humanitarian aid,111,2023-10-01
+2023,10,israel attack,2,2023-10-01
+2023,11,attacked gaza,1,2023-11-01
+2023,11,children killed,22,2023-11-01
+2023,11,humanitarian aid,95,2023-11-01
+2023,11,israel attack,1,2023-11-01
+2023,12,children killed,6,2023-12-01
+2023,12,humanitarian aid,69,2023-12-01
+2023,12,israel attack,1,2023-12-01
+2024,1,children killed,1,2024-01-01
+2024,1,humanitarian aid,67,2024-01-01
+2024,2,children killed,4,2024-02-01
+2024,2,humanitarian aid,62,2024-02-01
+2024,3,attacked gaza,1,2024-03-01
+2024,3,children killed,5,2024-03-01
+2024,3,humanitarian aid,87,2024-03-01
+2024,4,humanitarian aid,39,2024-04-01

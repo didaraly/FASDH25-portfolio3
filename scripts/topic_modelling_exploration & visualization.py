@@ -65,7 +65,7 @@ fig = px.bar(df_combined,
 # Ensure x-axis is treated as categorical (not continuous) for proper bar grouping
 fig.update_layout(xaxis=dict(type='category'))
 # save chart as html
-fig.write_html("../outputs/exploration/topic_dominance_2023vs2024_topic-modelling.html")  
+fig.write_html("../outputs/topic-modelling/exploration/topic_dominance_2023vs2024.html")  
 
 # Exploration 2: Top 20 Topics in Entire Dataset
 
@@ -86,7 +86,7 @@ fig_20 = px.bar(top_20,
                 template='plotly_white')
 fig_20.update_layout(xaxis_tickangle=-45) # rotate labels
 # Save as interactive HTML
-fig_20.write_html("../outputs/exploration/top_20_topics_entire_dataset_yearly_topic-modelling.html")
+fig_20.write_html("../outputs/topic-modelling/exploration/top_20_topics_entire_dataset_yearly.html")
 
 # Exploration 3 :Top 10 Topics in Entire Dataset
 
@@ -104,7 +104,7 @@ fig_10 = px.bar(top_10,
 # Rotate x-axis labels
 fig_10.update_layout(xaxis_tickangle=-45)
 # save chart as interactive HTML
-fig_10.write_html("../outputs/exploration/top_10_topics_entire_dataset_yearly_topic-modelling.html")
+fig_10.write_html("../outputs/topic-modelling/exploration/top_10_topics_entire_dataset_yearly.html")
 
 # Visualization -- Top 5 Topic Trends After War Began (Oct 7, 2023)
 # Which topics dominated since the start of War?
@@ -140,6 +140,6 @@ fig_trend = px.bar(monthly_counts,
 # group bars and rotate labels
 fig_trend.update_layout(barmode='group', xaxis_tickangle=-45)
 # save chart as interactive HTML
-fig_trend.write_html("../outputs/visualization/top_5_topics_war_period_monthly_trend_topic-modelling.html")
+fig_trend.write_html("../outputs/topic-modelling/visualization/top_5_topics_war_period_monthly_trend.html")
 # Display
 fig_trend.show()
