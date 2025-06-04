@@ -1,4 +1,3 @@
-# Import necessary libraries
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
@@ -32,7 +31,6 @@ try:
 except FileNotFoundError:
     print(f"Error: The file {file_path} was not found.")
 
-# Proceed if dataframe is loaded
 if df is not None:
     print("Available columns:", df.columns.tolist())
 
@@ -53,11 +51,12 @@ if df is not None:
         df = df.dropna(subset=['date-1'])
 
         df['month_start'] = df['date-1'].dt.to_period('M').dt.to_timestamp()
+
+        # Month name categorization (optional)
+        month_order = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December']
         df['month'] = df['date-1'].dt.strftime('%B')
-        df['month'] = pd.Categorical(df['month'], categories=[
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ], ordered=True)
+        df['month'] = pd.Categorical(df['month'], categories=month_order, ordered=True)
 
         # Define war_time column
         df['war_time'] = df['date-1'] >= war_start_date
@@ -101,45 +100,46 @@ if df is not None:
             nodes.to_csv("outputs/tfidf_nodes.csv", index=False)
             print("Nodes data saved.")
 
-        # Plotting overall
-        if all(col in df.columns for col in ['month', 'similarity', 'year-1', 'title-1', 'title-2']):
+        # Plotting overall and by war_time (HTML only)
+        if all(col in df.columns for col in ['month_start', 'similarity', 'year-1', 'title-1', 'title-2']):
+            # Overall
             fig_all = px.scatter(
                 df,
-                x='month',
+                x='month_start',
                 y='similarity',
                 color='year-1',
                 title='Top 5% Article Similarity Clusters by Month (All)',
                 hover_data=['title-1', 'title-2']
             )
-            fig_all.write_image("outputs/tfidf_clusters_all.png")
+            fig_all.update_layout(xaxis_title='Month (Year)', yaxis_title='Similarity')
             fig_all.write_html("outputs/tfidf_clusters_all.html")
             print("Overall plot saved.")
 
-            # Pre-war plot
-            df_prewar = df[df['war_time'] == False]
+            # Pre-war
+            df_prewar = df[df['war_time'] == False].copy()
             fig_prewar = px.scatter(
                 df_prewar,
-                x='month',
+                x='month_start',
                 y='similarity',
                 color='year-1',
                 title='Article Similarity (Pre-War)',
                 hover_data=['title-1', 'title-2']
             )
-            fig_prewar.write_image("outputs/tfidf_clusters_prewar.png")
+            fig_prewar.update_layout(xaxis_title='Month (Year)', yaxis_title='Similarity')
             fig_prewar.write_html("outputs/tfidf_clusters_prewar.html")
             print("Pre-war plot saved.")
 
-            # War-time plot
-            df_wartime = df[df['war_time'] == True]
+            # War-time
+            df_wartime = df[df['war_time'] == True].copy()
             fig_wartime = px.scatter(
                 df_wartime,
-                x='month',
+                x='month_start',
                 y='similarity',
                 color='year-1',
                 title='Article Similarity (During War)',
                 hover_data=['title-1', 'title-2']
             )
-            fig_wartime.write_image("outputs/tfidf_clusters_wartime.png")
+            fig_wartime.update_layout(xaxis_title='Month (Year)', yaxis_title='Similarity')
             fig_wartime.write_html("outputs/tfidf_clusters_wartime.html")
             print("War-time plot saved.")
         else:
