@@ -29,11 +29,11 @@ df_grouped['date'] = pd.to_datetime(df_grouped[['year', 'month']].assign(day= 1)
 
 # Plots a line chart of conflict-related 2-gram frequencies over time. 
 fig = px.line(df_grouped, x='date', y='count', color='2-gram',  
-              title='Conflict-Related Terms Frequency Over Time',  
-              labels={'count': 'Frequency', 'date': 'Month'})  
+              title='Conflict-Related Terms 2grams Frequency Over Time',  
+              labels={'count': 'Frequency', 'date': 'Year'})  
 fig.show()  # Shows the line chart.
 
-fig.write_html("../outputs/ngrams/exploration/conflict_terms_2grams_over_time.html") # Saves the 2-gram conflict terms chart as an HTML file.
+fig.write_html("../outputs/ngrams/visualization/conflict_terms_2grams_over_time.html") # Saves the 2-gram conflict terms chart as an HTML file.
 
 # Saves the grouped 2-gram data to a CSV file without the index.
 df_grouped.to_csv("../outputs/ngrams/exploration/conflict_terms_2grams_frequency_exploration_over_time.csv", index=False)
@@ -43,13 +43,13 @@ df_war_period = df_grouped[df_grouped['date'] >= '2023-10-01']
 
 # Creates a line chart for conflict 2-gram frequencies during the war period starting October 2023 to view.
 fig_war = px.line(df_war_period, x='date', y='count', color='2-gram',  
-                  title='Conflict-Related Terms Frequency Since October 2023 (War Period)',  
+                  title='Conflict-Related Terms 2grams Frequency Since October 2023 (War Period)',  
                   labels={'count': 'Frequency', 'date': 'Month'})  
 
 fig_war.show()  # Shows the line chart of 2gram conflict term during war period.
 
 # Saves the war period 2-gram conflict terms chart as an HTML file.
-fig_war.write_html("../outputs/ngrams/exploration/conflict_terms_2grams_war_period_only.html")
+fig_war.write_html("../outputs/ngrams/visualization/conflict_terms_2grams_war_period_only.html")
 
 # Saves the war period 2-gram conflict data to a CSV file without the index.
 df_war_period.to_csv("../outputs/ngrams/exploration/conflict_terms_frequency_2grams_war_period_only.csv", index=False)

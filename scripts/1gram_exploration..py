@@ -58,13 +58,13 @@ df_grouped['date'] = pd.to_datetime(df_grouped[['year', 'month']].assign(day= 1)
 
 # Plots a line chart to visualize how conflict-related term frequencies change over time.
 fig = px.line(df_grouped, x='date', y='count', color='1-gram',  
-              title='Conflict-Related Term Frequency Over Time',  
-              labels={'count': 'Frequency', 'date': 'Month'})  
+              title='Conflict-Related Terms 1grams Frequency Over Time',  
+              labels={'count': 'Frequency', 'date': 'Year'})  
 
 fig.show()  # Shows the line chart.
 
 # Saves the chart as an HTML file to view.
-fig.write_html("../outputs/ngrams/exploration/conflict_terms_1gram_over_time.html")
+fig.write_html("../outputs/ngrams/visualization/conflict_terms_1gram_over_time.html")
 
 # Saves the grouped data to a CSV file without the index.
 df_grouped.to_csv("../outputs/ngrams/exploration/conflict_terms_frequency_1gram_exploration_over_time.csv", index=False)
@@ -74,12 +74,12 @@ df_war_period = df_grouped[df_grouped['date'] >= '2023-10-01']
 
 # Creates a line chart showing conflict term frequencies during the war period starting October 2023.
 fig_war = px.bar(df_war_period, x='date', y='count', color='1-gram',  
-                  title='Conflict-Related Terms Frequency Since October 2023 (War Period)',  
+                  title='Conflict-Related Terms 1grams Frequency Since October 2023 (War Period)',  
                   labels={'count': 'Frequency', 'date': 'Month'},
                  barmode='group')
 
 fig_war.show()  # Shows the line chart.
-fig_war.write_html("../outputs/ngrams/exploration/conflict_terms_1grams_war_period_only.html") # Saves the chart as an HTML file to view.
+fig_war.write_html("../outputs/ngrams/visualization/conflict_terms_1grams_war_period_only.html") # Saves the chart as an HTML file to view.
 
 # Saves the war period conflict term frequencies to a CSV file without the index.
 df_war_period.to_csv("../outputs/ngrams/exploration/conflict_terms_frequency_1gram_exploration_war_period_only.csv", index=False)

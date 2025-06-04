@@ -58,5 +58,5 @@ fig.write_html("../outputs/ngrams/visualization/Visualization_Humanitarian_Aid_v
 # Show the comparison chart.
 fig.show()
 
-combined.to_csv("../outputs/ngrams/visualization/Visualization_Humanitarian_Aid_vs_Casualties_war_period_only.csv", index=False)
+combined.to_csv("../outputs/ngrams/exploration/Humanitarian_Aid_vs_Casualties_war_period_only.csv", index=False)
 
