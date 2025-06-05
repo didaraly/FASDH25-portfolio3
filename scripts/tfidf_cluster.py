@@ -11,6 +11,8 @@ print("Current working directory:", os.getcwd())
 
 # Define data path
 data_dir = "../data/dataframes/tfidf/"
+
+#Code take from FASDH-14.2 slide: https://docs.google.com/presentation/d/1JqmrRFYAmRA4PCp6UFtpfrC5kJpUM3JaXoDlatiATQo/edit?slide=id.g358ab554081_1_94#slide=id.g358ab554081_1_94
 file_path = data_dir + "tfidf-over-0.3.csv"
 
 try:
@@ -25,6 +27,7 @@ except FileNotFoundError:
 df = None
 
 # Load the dataset
+#Taken from DHFAS-13.2 slides:https://docs.google.com/presentation/d/1PbnpWuS_kh2LV5MitxvFx9FT-v6pXmhkccmwkLwzqQs/edit?slide=id.g35492b894bd_0_68#slide=id.g35492b894bd_0_68
 try:
     df = pd.read_csv(file_path)
     print("File loaded successfully.")
@@ -42,11 +45,15 @@ if df is not None:
         df['month-1'] = pd.to_numeric(df['month-1'], errors='coerce').astype('Int64')
         df['day-1'] = pd.to_numeric(df['day-1'], errors='coerce').astype('Int64')
 
+        #Filtering rows
+        ##Taken from DHFAS-13.2 slides:https://docs.google.com/presentation/d/1PbnpWuS_kh2LV5MitxvFx9FT-v6pXmhkccmwkLwzqQs/edit?slide=id.g35492b894bd_0_68#slide=id.g35492b894bd_0_68
         df = df.dropna(subset=required_date_cols)
 
         date_cols_renamed = df[required_date_cols].rename(columns={
             'year-1': 'year', 'month-1': 'month', 'day-1': 'day'
         })
+
+        #Taken from DHFAS-13.2 slides:https://docs.google.com/presentation/d/1PbnpWuS_kh2LV5MitxvFx9FT-v6pXmhkccmwkLwzqQs/edit?slide=id.g35492b894bd_0_68#slide=id.g35492b894bd_0_68
         df['date-1'] = pd.to_datetime(date_cols_renamed, errors='coerce')
         df = df.dropna(subset=['date-1'])
 
@@ -63,6 +70,8 @@ if df is not None:
 
         # Filter top 5% similarity
         if 'similarity' in df.columns:
+
+            #Inspired by the plotting goals in slides DHFAS-13.2: https://docs.google.com/presentation/d/1al7Kq1016BVduxg3sWaXEJyoYVUL5vbGfjscS1wvrm8/edit?slide=id.g30508260321_0_15#slide=id.g30508260321_0_15 and FASDH-14.2 slide: https://docs.google.com/presentation/d/1JqmrRFYAmRA4PCp6UFtpfrC5kJpUM3JaXoDlatiATQo/edit?slide=id.g358ab554081_1_94#slide=id.g358ab554081_1_94
             threshold = df['similarity'].quantile(0.95)
             df = df[df['similarity'] >= threshold]
 
@@ -72,7 +81,7 @@ if df is not None:
             else:
                 print("Required columns for similarity pairs not found.")
 
-        # Filter by keywords
+        # Filtering by keywords 
         keywords = ['hospital', 'medical', 'surgeon', 'drone', 'missile', 'strike']
         if 'title-1' in df.columns and 'title-2' in df.columns:
             df_theme = df[
@@ -80,12 +89,14 @@ if df is not None:
                 df['title-2'].str.contains('|'.join(keywords), case=False, na=False)
             ]
             os.makedirs("outputs", exist_ok=True)
+
+            #Exproting filtered data to csv
             df_theme.to_csv("outputs/tfidf_theme_filtered.csv", index=False)
             print("Theme-filtered data saved.")
         else:
             print("Title columns not found. Skipping theme filtering.")
 
-        # Save edges and nodes
+        # Save edgse and nodes
         if all(col in df.columns for col in ['filename-1', 'filename-2', 'similarity']):
             edges = df[['filename-1', 'filename-2', 'similarity']].rename(
                 columns={'filename-1': 'Source', 'filename-2': 'Target', 'similarity': 'Weight'}
@@ -100,8 +111,10 @@ if df is not None:
             nodes.to_csv("outputs/tfidf_nodes.csv", index=False)
             print("Nodes data saved.")
 
-        # Plotting overall and by war_time (HTML only)
+        # Plotting overasll and by war_time (HTML only)
+        #Solution from slides DHFAS-13.2: https://docs.google.com/presentation/d/1al7Kq1016BVduxg3sWaXEJyoYVUL5vbGfjscS1wvrm8/edit?slide=id.g30508260321_0_15#slide=id.g30508260321_0_15
         if all(col in df.columns for col in ['month_start', 'similarity', 'year-1', 'title-1', 'title-2']):
+
             # Overall
             fig_all = px.scatter(
                 df,
@@ -116,6 +129,7 @@ if df is not None:
             print("Overall plot saved.")
 
             # Pre-war
+            #Putting togeather with filtering
             df_prewar = df[df['war_time'] == False].copy()
             fig_prewar = px.scatter(
                 df_prewar,
@@ -130,6 +144,7 @@ if df is not None:
             print("Pre-war plot saved.")
 
             # War-time
+            #Putting together with filtering
             df_wartime = df[df['war_time'] == True].copy()
             fig_wartime = px.scatter(
                 df_wartime,
