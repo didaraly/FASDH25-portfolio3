@@ -118,7 +118,7 @@ fig_10.write_html("../outputs/topic-modelling/visualization/top_10_topics_entire
 # save as csv
 top_10.to_csv("../outputs/topic-modelling/exploration/top_10topics.csv")
 
-
+# Main Argument
 # Top 5 Topic Trends After War Began (Oct 7, 2023)
 # Which topics dominated since the start of War?
 
