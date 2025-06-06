@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.express as px
+#USed plotly.io to export as HTML (mentioned in solution 3)
 import plotly.io as pio
 import os
 
@@ -17,6 +18,8 @@ file_path = data_dir + "tfidf-over-0.3.csv"
 
 try:
     print(f"Contents of expected data directory: {data_dir}")
+
+    #Help from CHatgpt (mentioned in solution 1)
     if os.path.exists(data_dir):
         print(os.listdir(data_dir))
     else:
@@ -50,6 +53,7 @@ if df is not None:
             'year-1': 'year', 'month-1': 'month', 'day-1': 'day'
         })
 
+        #Help from online website (mentioned in solution 2)
         df['date-1'] = pd.to_datetime(date_cols_renamed, errors='coerce')
         df = df.dropna(subset=['date-1'])
 
@@ -72,6 +76,7 @@ if df is not None:
             else:
                 print("Required columns for similarity pairs not found.")
 
+        #Mentioned in solution 4
         keywords = ['hospital', 'medical', 'surgeon', 'drone', 'missile', 'strike']
         if 'title-1' in df.columns and 'title-2' in df.columns:
             df_theme = df[
