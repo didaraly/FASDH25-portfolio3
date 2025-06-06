@@ -12,7 +12,7 @@ print("Current working directory:", os.getcwd())
 # Define data path
 data_dir = "../data/dataframes/tfidf/"
 
-#Code take from FASDH-14.2 slide: https://docs.google.com/presentation/d/1JqmrRFYAmRA4PCp6UFtpfrC5kJpUM3JaXoDlatiATQo/edit?slide=id.g358ab554081_1_94#slide=id.g358ab554081_1_94
+#Code take from FASDH-14.2 slide
 file_path = data_dir + "tfidf-over-0.3.csv"
 
 try:
@@ -27,7 +27,6 @@ except FileNotFoundError:
 df = None
 
 # Load the dataset
-#Taken from DHFAS-13.2 slides:https://docs.google.com/presentation/d/1PbnpWuS_kh2LV5MitxvFx9FT-v6pXmhkccmwkLwzqQs/edit?slide=id.g35492b894bd_0_68#slide=id.g35492b894bd_0_68
 try:
     df = pd.read_csv(file_path)
     print("File loaded successfully.")
@@ -45,33 +44,25 @@ if df is not None:
         df['month-1'] = pd.to_numeric(df['month-1'], errors='coerce').astype('Int64')
         df['day-1'] = pd.to_numeric(df['day-1'], errors='coerce').astype('Int64')
 
-        #Filtering rows
-        ##Taken from DHFAS-13.2 slides:https://docs.google.com/presentation/d/1PbnpWuS_kh2LV5MitxvFx9FT-v6pXmhkccmwkLwzqQs/edit?slide=id.g35492b894bd_0_68#slide=id.g35492b894bd_0_68
         df = df.dropna(subset=required_date_cols)
 
         date_cols_renamed = df[required_date_cols].rename(columns={
             'year-1': 'year', 'month-1': 'month', 'day-1': 'day'
         })
 
-        #Taken from DHFAS-13.2 slides:https://docs.google.com/presentation/d/1PbnpWuS_kh2LV5MitxvFx9FT-v6pXmhkccmwkLwzqQs/edit?slide=id.g35492b894bd_0_68#slide=id.g35492b894bd_0_68
         df['date-1'] = pd.to_datetime(date_cols_renamed, errors='coerce')
         df = df.dropna(subset=['date-1'])
 
         df['month_start'] = df['date-1'].dt.to_period('M').dt.to_timestamp()
 
-        # Month name categorization (optional)
         month_order = ['January', 'February', 'March', 'April', 'May', 'June',
                        'July', 'August', 'September', 'October', 'November', 'December']
         df['month'] = df['date-1'].dt.strftime('%B')
         df['month'] = pd.Categorical(df['month'], categories=month_order, ordered=True)
 
-        # Define war_time column
         df['war_time'] = df['date-1'] >= war_start_date
 
-        # Filter top 5% similarity
         if 'similarity' in df.columns:
-
-            #Inspired by the plotting goals in slides DHFAS-13.2: https://docs.google.com/presentation/d/1al7Kq1016BVduxg3sWaXEJyoYVUL5vbGfjscS1wvrm8/edit?slide=id.g30508260321_0_15#slide=id.g30508260321_0_15 and FASDH-14.2 slide: https://docs.google.com/presentation/d/1JqmrRFYAmRA4PCp6UFtpfrC5kJpUM3JaXoDlatiATQo/edit?slide=id.g358ab554081_1_94#slide=id.g358ab554081_1_94
             threshold = df['similarity'].quantile(0.95)
             df = df[df['similarity'] >= threshold]
 
@@ -81,7 +72,6 @@ if df is not None:
             else:
                 print("Required columns for similarity pairs not found.")
 
-        # Filtering by keywords 
         keywords = ['hospital', 'medical', 'surgeon', 'drone', 'missile', 'strike']
         if 'title-1' in df.columns and 'title-2' in df.columns:
             df_theme = df[
@@ -89,33 +79,29 @@ if df is not None:
                 df['title-2'].str.contains('|'.join(keywords), case=False, na=False)
             ]
             os.makedirs("outputs", exist_ok=True)
-
-            #Exproting filtered data to csv
             df_theme.to_csv("outputs/tfidf_theme_filtered.csv", index=False)
             print("Theme-filtered data saved.")
         else:
             print("Title columns not found. Skipping theme filtering.")
 
-        # Save edgse and nodes
         if all(col in df.columns for col in ['filename-1', 'filename-2', 'similarity']):
             edges = df[['filename-1', 'filename-2', 'similarity']].rename(
                 columns={'filename-1': 'Source', 'filename-2': 'Target', 'similarity': 'Weight'}
             )
             edges.to_csv("outputs/tfidf_edges.csv", index=False)
             print("Edges data saved.")
-        if all(col in df.columns for col in ['filename-1', 'title-1', 'filename-2', 'title-2']):
+
+        if all(col in df.columns for col in ['filename-1', 'title-1', 'month-1', 'filename-2', 'title-2', 'month-2']):
             nodes = pd.concat([
-                df[['filename-1', 'title-1']].rename(columns={'filename-1': 'Id', 'title-1': 'Label'}),
-                df[['filename-2', 'title-2']].rename(columns={'filename-2': 'Id', 'title-2': 'Label'})
+                df[['filename-1', 'title-1', 'month-1']].rename(columns={
+                    'filename-1': 'Id', 'title-1': 'Label', 'month-1': 'month'}),
+                df[['filename-2', 'title-2', 'month-2']].rename(columns={
+                    'filename-2': 'Id', 'title-2': 'Label', 'month-2': 'month'})
             ]).drop_duplicates()
             nodes.to_csv("outputs/tfidf_nodes.csv", index=False)
             print("Nodes data saved.")
 
-        # Plotting overasll and by war_time (HTML only)
-        #Solution from slides DHFAS-13.2: https://docs.google.com/presentation/d/1al7Kq1016BVduxg3sWaXEJyoYVUL5vbGfjscS1wvrm8/edit?slide=id.g30508260321_0_15#slide=id.g30508260321_0_15
         if all(col in df.columns for col in ['month_start', 'similarity', 'year-1', 'title-1', 'title-2']):
-
-            # Overall
             fig_all = px.scatter(
                 df,
                 x='month_start',
@@ -128,8 +114,6 @@ if df is not None:
             fig_all.write_html("outputs/tfidf_clusters_all.html")
             print("Overall plot saved.")
 
-            # Pre-war
-            #Putting togeather with filtering
             df_prewar = df[df['war_time'] == False].copy()
             fig_prewar = px.scatter(
                 df_prewar,
@@ -143,8 +127,6 @@ if df is not None:
             fig_prewar.write_html("outputs/tfidf_clusters_prewar.html")
             print("Pre-war plot saved.")
 
-            # War-time
-            #Putting together with filtering
             df_wartime = df[df['war_time'] == True].copy()
             fig_wartime = px.scatter(
                 df_wartime,
